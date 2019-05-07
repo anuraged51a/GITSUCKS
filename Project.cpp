@@ -145,6 +145,67 @@ int coin_change(int deno[],int size_deno,vector<vector<int> >& quan)
     return mem_coinage[size_deno][ret];
 }
 
+int height(int arr[],int n,int p,int k)
+{
+
+    sort(arr+p,arr+k);
+    int su=0;
+    for(int i=k-1;i>=p;i-=2)
+    {
+
+        su+=arr[i];
+    }
+    return su;
+}
+void num_of_trucks(int arr[],int h,int n)
+{
+    int nu=0;
+    int p=0;
+    int c=1;
+    while(nu<n)
+    {
+        int pd=p;
+
+
+        for(int i=pd+1;i<=n;i++)
+        {
+
+           // cout<<"\n"<<i<<" "<<pd<<"\n";
+            if(height(arr,n,pd,i)<=h)
+            {
+              //  cout<<height(arr,n,pd,i)<<" ";
+
+                p=i;
+            }
+            else
+            {
+                break;
+            }
+
+        }
+        if(c==1)
+        {
+                    cout<<"\ntruck "<<c<<" can tranfer goods for first "<<p<<" customers\n";
+
+
+        }
+        else{
+            cout<<"\nround "<<c<<" can tranfer goods for next "<<p-pd<<" customers\n";
+
+
+        }
+
+        c++;
+
+       // cout<<"\n"<<p<<"\n";
+        nu=p;
+
+
+
+
+    }
+}
+
 void mincost(int city)
 {
     int i,ncity;
@@ -161,7 +222,56 @@ void mincost(int city)
 
     mincost(ncity);
 }
+void memrecur(int i,int j,int arr[],vector<int>& p,vector<vector<int> >& myVector,vector<int>& p1,vector<vector<int> >& quant,int quality[])
+{
+    //memrecur(n,sum,arr,ss,myVector,qs,quant,quality);
+    if(j<0)
+    {
+        return;
+    }
+    if(i<=0)
+    {
+        int su=0;
+        for (int k = 0; k < p.size(); k++)
+        {
+            su+=p[k];
+        }
+        if(su==sum)
+        {
+            myVector.push_back(p);
+            quant.push_back(p1);
+        }
+        return;
+    }
+    if((j-arr[i]>=0)&&(mem[i-1][j-arr[i]]==true))
+    {
+        p.push_back(arr[i]);
+        p1.push_back(quality[i]);
+        memrecur(i-1,j-arr[i],arr,p,myVector,p1,quant,quality);
+        int pos=0;
+        for (int k =0;k< p.size();k++)
+        {
+            if(p[k]==arr[i])
+            {
+                pos=k;
+            }
+        }
+        while(pos<p.size())
+        {
+            p.pop_back();
+            p1.pop_back();
+            pos++;
+        }
+                //p.pop_back();
+    }
+    if((i-1>=0)||(mem[i-1][j]==true))
+    {
+        memrecur(i-1,j,arr,p,myVector,p1,quant,quality);
 
+    }
+
+    return;
+}
 COORD coord={0,0};
 void gotoxy(int x,int y)
 {
@@ -176,10 +286,11 @@ void delay(unsigned int mseconds)
 }
 int main()
 {
+    gotoxy(16,9);
 	cout << "     **************************************************************" << endl;
-	gotoxy(6,10);
+	gotoxy(16,10);
 	cout << "                           ALGORITHM AND PROBLEM SOLVING PROJECT                     " << endl;
-	gotoxy(6,11);
+	gotoxy(16,11);
 	cout << "     **************************************************************" << endl;
         cout<<"RAMLAL DAIRY PROBLEM";
         cout<<endl<<endl<<"Sub By:Anurag Gupta(17803028)"<<endl<<"  "<<"Abhimanyu Chandak(17803001)"<<endl<<"  "<<"Mayank Gupta(17803002)"<<endl<<"  "<<"Shubham Mishra(17803025)";
@@ -204,7 +315,107 @@ int main()
     int arr[]={0,1,2,3,4,5,6,8,10,12,15,18,20,22,25,50};
     int quality[]={0,25,15,45,66,89,24,70,99,53,15,87,23,65,43,68};
     int n=15;
+    for(i=0;i<=n;i++)
+    {
+        for(j=i+1;j<=n;j++)
+        {
+            if(arr[i]>arr[j])
+            {
+                int temp=arr[i];
+                arr[i]=arr[j];
+                arr[j]=temp;
+                int temp1=quality[i];
+                quality[i]=quality[j];
+                quality[j]=temp1;
+            }
+        }
+    }
+
+   // vector< vector<bool> >mem;
+    for(i=0;i<=n;i++)
+    {
+        mem[i][0]=true;
+    }
+
+    for(i=1;i<=sum;i++)
+    {
+
+        mem[0][i]=false;
+    }
+
+//cout<<"FEFFSEQWSX";
+    for(i=1;i<=n;i++)
+    {
+        for(j=1;j<=sum;j++)
+        {
+            if(arr[i]>j)
+            {
+                mem[i][j]=mem[i-1][j];
+            }
+            else
+            {
+               if(mem[i-1][j]==true)
+               {
+                   mem[i][j]=mem[i-1][j];
+               }
+               else
+               {
+                   mem[i][j]=mem[i-1][j-arr[i]];
+               }
+            }
+
+        }
+    }
+
+
+    vector<int> ss;vector< vector<int> > myVector;
+    vector<int> qs;vector< vector<int> > quant;
+
+    memrecur(n,sum,arr,ss,myVector,qs,quant,quality);
+
+    float weighted_average[myVector.size()];
+    for (int i = 0; i < myVector.size(); i++)
+    {
+        float sumw=0.0;
+        float sumww=0.0;
+        for(int j=0;j<myVector[i].size();j++)
+        {
+            sumw=sumw+myVector[i][j]*quant[i][j];
+            sumww+=myVector[i][j];
+        }
+    weighted_average[i]=sumw/sumww;
+    }
+    int max=0;
+    int pos=-1;
+    for(int i=0;i<myVector.size();i++)
+    {
+        if(max<weighted_average[i])
+        {
+            max=weighted_average[i];
+            pos=i;
+        }
+    }
+    cout<<"\n\n\t\t IN ORDER TO OBTAIN PUREST MILK, MILK COWS WITH MILKING CAPACITY"<<endl;
+
+    for(int j=0;j<myVector[pos].size();j++)
+    {
+        cout<<myVector[pos][j]<<"L   ";
+    }
+
+
+    int duplicate[n1];
+    for(int i=0;i<n1;i++)
+    {
+
+        duplicate[i]=cust_quantity[i];
+
+    }
+
     cout<<endl;
+    cout<<"Please ..Enter Capacity of Single Truck"<<"\n";
+    int hei;
+    cin>>hei;
+    cout<<"Minimum Number Of Trucks that need to be travelled together for statisfying the customers are as follows\n\n ";num_of_trucks(duplicate,hei,n1);
     takeInput();
     mincost(0); //passing 0 because starting vertex
     cout<<"\n\n\tMinimum cost is of transportation for Shyam "<<cost<<endl;
@@ -239,7 +450,7 @@ int main()
     else
     {
      cout<<"\n-----PLEASE GIVE  "<<(ret)*-1<<" .RS MORE-----";
-    cout<<"----------------------------------------------------------";
+    cout<<"-------------------------------------------------------------";
      goto A;
     }
     }
